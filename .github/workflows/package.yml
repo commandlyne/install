@@ -1,0 +1,177 @@
+name: Package Release
+
+# Triggered by the main clawworker repo after a release is created
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag (e.g., v1.2.0)"
+        required: true
+        type: string
+      source_repo:
+        description: "Source repo (owner/name) to download binaries from"
+        required: true
+        type: string
+        default: "clawworker/clawworker"
+      prerelease:
+        description: "Is this a pre-release?"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  BINARY: clawworker
+
+jobs:
+  package:
+    name: Package (${{ matrix.os }}/${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: amd64
+          - os: darwin
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binary from source release
+        env:
+          GH_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
+        run: |
+          VERSION="${{ inputs.version }}"
+          ASSET="${BINARY}-${{ matrix.os }}-${{ matrix.arch }}.tar.gz"
+          SOURCE_REPO="${{ inputs.source_repo }}"
+
+          echo "Downloading ${ASSET} from ${SOURCE_REPO} release ${VERSION}..."
+
+          gh release download "${VERSION}" \
+            --repo "${SOURCE_REPO}" \
+            --pattern "${ASSET}" \
+            --dir ./download
+
+          # Also grab checksums for verification
+          gh release download "${VERSION}" \
+            --repo "${SOURCE_REPO}" \
+            --pattern "checksums.txt" \
+            --dir ./download || echo "No checksums file found, skipping verification"
+
+      - name: Verify checksum
+        run: |
+          ASSET="${BINARY}-${{ matrix.os }}-${{ matrix.arch }}.tar.gz"
+          cd download
+
+          if [[ -f checksums.txt ]]; then
+            EXPECTED=$(grep "${ASSET}" checksums.txt | awk '{print $1}')
+            ACTUAL=$(sha256sum "${ASSET}" | awk '{print $1}')
+            if [[ -n "$EXPECTED" && "$ACTUAL" != "$EXPECTED" ]]; then
+              echo "::error::Checksum mismatch for ${ASSET}! Expected: ${EXPECTED}, Got: ${ACTUAL}"
+              exit 1
+            fi
+            echo "Checksum verified for ${ASSET}"
+          else
+            echo "::warning::No checksums file, skipping verification"
+          fi
+
+      - name: Extract and repackage
+        run: |
+          ASSET="${BINARY}-${{ matrix.os }}-${{ matrix.arch }}"
+          mkdir -p staging
+
+          # Extract original archive
+          tar xzf "download/${ASSET}.tar.gz" -C staging
+
+          # Ensure binary is executable
+          chmod +x "staging/${ASSET}"
+
+          # Create the release archive
+          mkdir -p output
+          cd staging
+          tar czf "../output/${ASSET}.tar.gz" "${ASSET}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BINARY }}-${{ matrix.os }}-${{ matrix.arch }}
+          path: output/*.tar.gz
+          retention-days: 1
+
+  release:
+    name: Create Install Release
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate checksums
+        working-directory: artifacts
+        run: sha256sum *.tar.gz > checksums.txt
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          VERSION="${{ inputs.version }}"
+          {
+            echo "body<<RELEASE_EOF"
+            echo "## ClawWorker ${VERSION}"
+            echo ""
+            if [[ "${{ inputs.prerelease }}" == "true" ]]; then
+              echo "> **Pre-release** — for testing purposes."
+            else
+              echo "> **Stable release**"
+            fi
+            echo ""
+            echo "### Quick Install"
+            echo ""
+            echo "\`\`\`bash"
+            echo "curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash"
+            echo "\`\`\`"
+            echo ""
+            echo "Or install this specific version:"
+            echo ""
+            echo "\`\`\`bash"
+            echo "curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash -s -- --version ${VERSION}"
+            echo "\`\`\`"
+            echo ""
+            echo "### Downloads"
+            echo ""
+            echo "| Platform | Architecture | File |"
+            echo "|----------|-------------|------|"
+            echo "| Linux | x86_64 | \`clawworker-linux-amd64.tar.gz\` |"
+            echo "| Linux | ARM64 | \`clawworker-linux-arm64.tar.gz\` |"
+            echo "| macOS | Intel | \`clawworker-darwin-amd64.tar.gz\` |"
+            echo "| macOS | Apple Silicon | \`clawworker-darwin-arm64.tar.gz\` |"
+            echo ""
+            echo "### Verify"
+            echo ""
+            echo "\`\`\`bash"
+            echo "sha256sum -c checksums.txt"
+            echo "\`\`\`"
+            echo "RELEASE_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}
+          body: ${{ steps.notes.outputs.body }}
+          prerelease: ${{ inputs.prerelease }}
+          files: |
+            artifacts/*.tar.gz
+            artifacts/checksums.txt
+          generate_release_notes: false
