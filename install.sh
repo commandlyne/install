@@ -14,7 +14,7 @@ set -euo pipefail
 
 # ── Defaults ──────────────────────────────────────────────────
 INSTALL_DIR="/usr/local/bin"
-DATA_DIR="${HOME}/.clawworker"
+DATA_DIR="${HOME}/.commandlyne"
 SERVICE_MODE="gateway"
 INSTALL_SERVICE=true
 VERSION="latest"
