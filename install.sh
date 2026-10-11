@@ -18,7 +18,7 @@ DATA_DIR="${HOME}/.commandlyne"
 SERVICE_MODE="gateway"
 INSTALL_SERVICE=true
 VERSION="latest"
-REPO_OWNER="clawworker"
+REPO_OWNER="commandlyne"
 REPO_NAME="install"
 BINARY_NAME="clawworker"
 
