@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/clawworker/install/main/assets/logo.png" alt="ClawWorker" width="200" />
+  <img src="https://raw.githubusercontent.com/commandlyne/install/main/assets/logo.png" alt="ClawWorker" width="200" />
 </p>
 
 <h1 align="center">ClawWorker</h1>
@@ -20,8 +20,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/clawworker/install/releases/latest"><img src="https://img.shields.io/github/v/release/clawworker/install?style=flat-square&color=00C853&label=latest" alt="Latest Release" /></a>
-  <a href="https://github.com/clawworker/install/releases"><img src="https://img.shields.io/github/downloads/clawworker/install/total?style=flat-square&color=2196F3" alt="Downloads" /></a>
+  <a href="https://github.com/commandlyne/install/releases/latest"><img src="https://img.shields.io/github/v/release/commandlyne/install?style=flat-square&color=00C853&label=latest" alt="Latest Release" /></a>
+  <a href="https://github.com/commandlyne/install/releases"><img src="https://img.shields.io/github/downloads/commandlyne/install/total?style=flat-square&color=2196F3" alt="Downloads" /></a>
   <img src="https://img.shields.io/badge/platforms-linux%20%7C%20macOS-blueviolet?style=flat-square" alt="Platforms" />
   <img src="https://img.shields.io/badge/arch-amd64%20%7C%20arm64-orange?style=flat-square" alt="Architectures" />
 </p>
@@ -31,7 +31,7 @@
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/commandlyne/install/main/install.sh | bash
 ```
 
 That's it. The installer automatically detects your OS and architecture, downloads the correct binary, verifies its checksum, and installs ClawWorker as a background service.
@@ -40,16 +40,16 @@ That's it. The installer automatically detects your OS and architecture, downloa
 
 ```bash
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash -s -- --version v1.2.0
+curl -fsSL https://raw.githubusercontent.com/commandlyne/install/main/install.sh | bash -s -- --version v1.2.0
 
 # Install without registering as a service
-curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash -s -- --no-service
+curl -fsSL https://raw.githubusercontent.com/commandlyne/install/main/install.sh | bash -s -- --no-service
 
 # Choose the service mode (default: gateway)
-curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash -s -- --mode serve
+curl -fsSL https://raw.githubusercontent.com/commandlyne/install/main/install.sh | bash -s -- --mode serve
 
 # Custom install directory
-curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash -s -- --install-dir /opt/bin
+curl -fsSL https://raw.githubusercontent.com/commandlyne/install/main/install.sh | bash -s -- --install-dir /opt/bin
 ```
 
 ---
@@ -209,7 +209,7 @@ ClawWorker auto-detects configured channels and connects to them on startup.
 ### Automatic Update
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash -s -- update
+curl -fsSL https://raw.githubusercontent.com/commandlyne/install/main/install.sh | bash -s -- update
 ```
 
 This stops the service, downloads the latest binary, and restarts the service.
@@ -217,7 +217,7 @@ This stops the service, downloads the latest binary, and restarts the service.
 ### Update to a Specific Version
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/clawworker/install/main/install.sh | bash -s -- update v1.3.0
+curl -fsSL https://raw.githubusercontent.com/commandlyne/install/main/install.sh | bash -s -- update v1.3.0
 ```
 
 ### Built-in Update Check
@@ -271,22 +271,6 @@ The service runs in `gateway` mode by default, which enables the Web UI, REST AP
 
 ---
 
-## Docker Alternative
-
-If you prefer containers:
-
-```bash
-docker run -d \
-  --name clawworker \
-  -p 8080:8080 \
-  -e CLAWWORKER_PROVIDER=openai \
-  -e CLAWWORKER_API_KEY=sk-... \
-  -v clawworker-data:/root/.clawworker \
-  ghcr.io/clawworker/clawworker:latest
-```
-
----
-
 ## Security
 
 - Binaries are **checksum-verified** during installation
@@ -328,8 +312,8 @@ clawworker doctor
 
 ## Community & Support
 
-- **Issues:** [GitHub Issues](https://github.com/clawworker/install/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/orgs/clawworker/discussions)
+- **Issues:** [GitHub Issues](https://github.com/commandlyne/install/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/orgs/commandlyne/discussions)
 
 ---
 
